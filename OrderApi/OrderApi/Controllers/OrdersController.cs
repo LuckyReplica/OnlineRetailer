@@ -47,8 +47,9 @@ namespace OrderApi.Controllers
 
             // Call ProductApi to get the product ordered
             RestClient c = new RestClient();
+
             //Check customer standing here
-            c.BaseUrl = new Uri("https://localhost:5001/api/customers/");
+            c.BaseUrl = new Uri("https://localhost:52063/api/customers/");
             var requestCustomer = new RestRequest(order.CustomerID.ToString(), Method.GET);
             var responseCustomer = c.Execute<Customer>(requestCustomer);
             var customer = responseCustomer.Data;
@@ -58,11 +59,11 @@ namespace OrderApi.Controllers
                 return BadRequest("Customer could not be found");
             }
 
-            if (customer.CreditStanding == 0)
+            if (customer.CreditStanding)
             {
                 // You may need to change the port number in the BaseUrl below
                 // before you can run the request.
-                c.BaseUrl = new Uri("https://localhost:5001/api/products/");
+                c.BaseUrl = new Uri("https://localhost:52063/api/products/");
                 var request = new RestRequest(order.ProductId.ToString(), Method.GET);
                 var response = c.Execute<Product>(request);
                 var orderedProduct = response.Data;
@@ -87,6 +88,7 @@ namespace OrderApi.Controllers
             {
                 return NoContent();
             }
+
             //// You may need to change the port number in the BaseUrl below
             //// before you can run the request.
             //c.BaseUrl = new Uri("https://localhost:5001/api/products/");
@@ -111,6 +113,7 @@ namespace OrderApi.Controllers
             //}
 
             // If the order could not be created, "return no content".
+
             return NoContent();
         }
 
