@@ -48,7 +48,7 @@ namespace OrderApi.Controllers
             // Call ProductApi to get the product ordered
             RestClient c = new RestClient();
 
-            //Check customer standing here
+            // Check customer standing here
             c.BaseUrl = new Uri("https://localhost:52063/api/customers/");
             var requestCustomer = new RestRequest(order.CustomerID.ToString(), Method.GET);
             var responseCustomer = c.Execute<Customer>(requestCustomer);
