@@ -13,10 +13,10 @@ namespace CustomerApi.Data
             context.Database.EnsureDeleted();
             context.Database.EnsureCreated();
 
-            // Look for any Products
             if (context.Customers.Any())
             {
-                return;   // DB has been seeded
+                // Check if DB has been seeded.
+                return;
             }
 
             List<Customer> customers = new List<Customer>

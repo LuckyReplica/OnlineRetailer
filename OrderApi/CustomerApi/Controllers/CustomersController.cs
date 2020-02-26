@@ -22,7 +22,7 @@ namespace CustomerApi.Controllers
             return repository.GetAll();
         }
 
-        // GET customer/1
+        // GET Customer/1
         [HttpGet("{id}", Name = "GetCustomer")]
         public IActionResult Get(int id)
         {
