@@ -47,28 +47,68 @@ namespace OrderApi.Controllers
 
             // Call ProductApi to get the product ordered
             RestClient c = new RestClient();
-            // You may need to change the port number in the BaseUrl below
-            // before you can run the request.
-            c.BaseUrl = new Uri("https://localhost:5001/api/products/");
-            var request = new RestRequest(order.ProductId.ToString(), Method.GET);
-            var response = c.Execute<Product>(request);
-            var orderedProduct = response.Data;
+            //Check customer standing here
+            c.BaseUrl = new Uri("https://localhost:5001/api/customers/");
+            var requestCustomer = new RestRequest(order.CustomerID.ToString(), Method.GET);
+            var responseCustomer = c.Execute<Customer>(requestCustomer);
+            var customer = responseCustomer.Data;
 
-            if (order.Quantity <= orderedProduct.ItemsInStock - orderedProduct.ItemsReserved)
+            if (customer == null)
             {
-                // reduce the number of items in stock for the ordered product,
-                // and create a new order.
-                orderedProduct.ItemsReserved += order.Quantity;
-                var updateRequest = new RestRequest(orderedProduct.Id.ToString(), Method.PUT);
-                updateRequest.AddJsonBody(orderedProduct);
-                var updateResponse = c.Execute(updateRequest);
+                return BadRequest("Customer could not be found");
+            }
 
-                if (updateResponse.IsSuccessful)
+            if (customer.CreditStanding == 0)
+            {
+                // You may need to change the port number in the BaseUrl below
+                // before you can run the request.
+                c.BaseUrl = new Uri("https://localhost:5001/api/products/");
+                var request = new RestRequest(order.ProductId.ToString(), Method.GET);
+                var response = c.Execute<Product>(request);
+                var orderedProduct = response.Data;
+
+                if (order.Quantity <= orderedProduct.ItemsInStock - orderedProduct.ItemsReserved)
                 {
-                    var newOrder = repository.Add(order);
-                    return CreatedAtRoute("GetOrder", new { id = newOrder.Id }, newOrder);
+                    // reduce the number of items in stock for the ordered product,
+                    // and create a new order.
+                    orderedProduct.ItemsReserved += order.Quantity;
+                    var updateRequest = new RestRequest(orderedProduct.Id.ToString(), Method.PUT);
+                    updateRequest.AddJsonBody(orderedProduct);
+                    var updateResponse = c.Execute(updateRequest);
+
+                    if (updateResponse.IsSuccessful)
+                    {
+                        var newOrder = repository.Add(order);
+                        return CreatedAtRoute("GetOrder", new { id = newOrder.Id }, newOrder);
+                    }
                 }
             }
+            else
+            {
+                return NoContent();
+            }
+            //// You may need to change the port number in the BaseUrl below
+            //// before you can run the request.
+            //c.BaseUrl = new Uri("https://localhost:5001/api/products/");
+            //var request = new RestRequest(order.ProductId.ToString(), Method.GET);
+            //var response = c.Execute<Product>(request);
+            //var orderedProduct = response.Data;
+
+            //if (order.Quantity <= orderedProduct.ItemsInStock - orderedProduct.ItemsReserved)
+            //{
+            //    // reduce the number of items in stock for the ordered product,
+            //    // and create a new order.
+            //    orderedProduct.ItemsReserved += order.Quantity;
+            //    var updateRequest = new RestRequest(orderedProduct.Id.ToString(), Method.PUT);
+            //    updateRequest.AddJsonBody(orderedProduct);
+            //    var updateResponse = c.Execute(updateRequest);
+
+            //    if (updateResponse.IsSuccessful)
+            //    {
+            //        var newOrder = repository.Add(order);
+            //        return CreatedAtRoute("GetOrder", new { id = newOrder.Id }, newOrder);
+            //    }
+            //}
 
             // If the order could not be created, "return no content".
             return NoContent();
