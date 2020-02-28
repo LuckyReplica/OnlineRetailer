@@ -49,7 +49,7 @@ namespace OrderApi.Controllers
             RestClient c = new RestClient();
 
             // Check customer standing here
-            c.BaseUrl = new Uri("https://localhost:52063/api/customers/");
+            c.BaseUrl = new Uri("https://localhost:52063/customers/");
             var requestCustomer = new RestRequest(order.CustomerID.ToString(), Method.GET);
             var responseCustomer = c.Execute<Customer>(requestCustomer);
             var customer = responseCustomer.Data;
