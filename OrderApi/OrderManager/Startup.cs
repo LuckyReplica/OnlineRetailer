@@ -1,14 +1,11 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.Hosting;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using CustomerApi.Data;
-using CustomerApi.Models;
+using Microsoft.Extensions.Hosting;
 
-namespace CustomerApi
+namespace OrderManager
 {
     public class Startup
     {
@@ -22,31 +19,12 @@ namespace CustomerApi
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            // In-memory database:
-            services.AddDbContext<CustomerApiContext>(opt => opt.UseInMemoryDatabase("CustomersDb"));
-
-            // Register repositories for dependency injection.
-            services.AddScoped<IRepository<Customer>, CustomerRepository>();
-
-            // Register database initializer for dependency injection.
-            services.AddTransient<IDbInitializer, DbInitializer>();
-
-            // Changed from .AddMcv.
             services.AddControllers(options => options.EnableEndpointRouting = false).SetCompatibilityVersion(CompatibilityVersion.Version_3_0);
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
-            using (var scope = app.ApplicationServices.CreateScope())
-            {
-                // Initialize the database
-                var services = scope.ServiceProvider;
-                var dbContext = services.GetService<CustomerApiContext>();
-                var dbInitializer = services.GetService<IDbInitializer>();
-                dbInitializer.Initialize(dbContext);
-            }
-
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
