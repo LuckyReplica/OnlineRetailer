@@ -10,12 +10,16 @@ namespace LoadBalancer.Controllers
     [Route("[controller]")]
     public class LoadBalancerController : ControllerBase
     {
+        string[] url = { "https://localhost:44330/orders/", "https://localhost:44331/orders/", "https://localhost:44332/orders/" };
+        int i = 0;
+
         // GET /orders
         [HttpGet]
         public IEnumerable<Order> Get()
         {
             RestClient c = new RestClient();
-            c.BaseUrl = new Uri("https://localhost:44382/api/orders/");
+            c.BaseUrl = new Uri(url[i % 3]);
+            i++;
             var request = new RestRequest(Method.GET);
             var response = c.Execute<List<Order>>(request);
             return response.Data;
@@ -25,7 +29,8 @@ namespace LoadBalancer.Controllers
         public IActionResult Get(int id)
         {
             RestClient c = new RestClient();
-            c.BaseUrl = new Uri("https://localhost:44382/api/orders/");
+            c.BaseUrl = new Uri(url[i % 3]);
+            i++;
             var request = new RestRequest(id.ToString(), Method.GET);
             var response = c.Execute<Order>(request);
             return new ObjectResult(response.Data);
@@ -41,7 +46,8 @@ namespace LoadBalancer.Controllers
             }
 
             RestClient c = new RestClient();
-            c.BaseUrl = new Uri("https://localhost:44382/api/orders/");
+            c.BaseUrl = new Uri(url[i % 3]);
+            i++;
             var request = new RestRequest(Method.POST);
             request.AddJsonBody(order);
             var response = c.Execute(request);
