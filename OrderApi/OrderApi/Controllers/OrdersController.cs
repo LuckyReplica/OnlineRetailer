@@ -1,6 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Net.Http;
+using System.Text;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
 using OrderApi.Data;
 using OrderApi.Models;
 using RestSharp;
@@ -10,6 +14,11 @@ namespace OrderApi.Controllers
     [Route("api/Orders")]
     public class OrdersController : Controller
     {
+        //This belongs to me /Tomek
+        //https://localhost:44382/api/orders
+        //https://localhost:44318/Customers
+        //https://localhost:44384/api/products
+
         private readonly IRepository<Order> repository;
 
         public OrdersController(IRepository<Order> repos)
@@ -25,7 +34,8 @@ namespace OrderApi.Controllers
         }
 
         // GET api/products/5
-        [HttpGet("{id}", Name = "GetOrder")]
+        [HttpGet]
+        [Route("getById/{id}")]
         public IActionResult Get(int id)
         {
             var item = repository.Get(id);
@@ -36,86 +46,108 @@ namespace OrderApi.Controllers
             return new ObjectResult(item);
         }
 
-        // POST api/orders
-        [HttpPost]
-        public IActionResult Post([FromBody]Order order)
+        [HttpGet]
+        [Route("getByCustomerId/{customerId}")]
+        public IEnumerable<Order> GetOrderById(int customerId)
         {
-            if (order == null)
-            {
-                return BadRequest();
-            }
-
-            // Call ProductApi to get the product ordered
-            RestClient c = new RestClient();
-
-            // Check customer standing here
-            c.BaseUrl = new Uri("https://localhost:52063/api/customers/");
-            var requestCustomer = new RestRequest(order.CustomerID.ToString(), Method.GET);
-            var responseCustomer = c.Execute<Customer>(requestCustomer);
-            var customer = responseCustomer.Data;
-
-            if (customer == null)
-            {
-                return BadRequest("Customer could not be found");
-            }
-
-            if (customer.CreditStanding)
-            {
-                // You may need to change the port number in the BaseUrl below
-                // before you can run the request.
-                c.BaseUrl = new Uri("https://localhost:52063/api/products/");
-                var request = new RestRequest(order.ProductId.ToString(), Method.GET);
-                var response = c.Execute<Product>(request);
-                var orderedProduct = response.Data;
-
-                if (order.Quantity <= orderedProduct.ItemsInStock - orderedProduct.ItemsReserved)
-                {
-                    // reduce the number of items in stock for the ordered product,
-                    // and create a new order.
-                    orderedProduct.ItemsReserved += order.Quantity;
-                    var updateRequest = new RestRequest(orderedProduct.Id.ToString(), Method.PUT);
-                    updateRequest.AddJsonBody(orderedProduct);
-                    var updateResponse = c.Execute(updateRequest);
-
-                    if (updateResponse.IsSuccessful)
-                    {
-                        var newOrder = repository.Add(order);
-                        return CreatedAtRoute("GetOrder", new { id = newOrder.Id }, newOrder);
-                    }
-                }
-            }
-            else
-            {
-                return NoContent();
-            }
-
-            //// You may need to change the port number in the BaseUrl below
-            //// before you can run the request.
-            //c.BaseUrl = new Uri("https://localhost:5001/api/products/");
-            //var request = new RestRequest(order.ProductId.ToString(), Method.GET);
-            //var response = c.Execute<Product>(request);
-            //var orderedProduct = response.Data;
-
-            //if (order.Quantity <= orderedProduct.ItemsInStock - orderedProduct.ItemsReserved)
-            //{
-            //    // reduce the number of items in stock for the ordered product,
-            //    // and create a new order.
-            //    orderedProduct.ItemsReserved += order.Quantity;
-            //    var updateRequest = new RestRequest(orderedProduct.Id.ToString(), Method.PUT);
-            //    updateRequest.AddJsonBody(orderedProduct);
-            //    var updateResponse = c.Execute(updateRequest);
-
-            //    if (updateResponse.IsSuccessful)
-            //    {
-            //        var newOrder = repository.Add(order);
-            //        return CreatedAtRoute("GetOrder", new { id = newOrder.Id }, newOrder);
-            //    }
-            //}
-
-            // If the order could not be created, "return no content".
-
-            return NoContent();
+            return repository.GetAllByCustomer(customerId);
         }
 
+        [HttpPut]
+        [Route("cancelOrder/{orderId}")]
+        public IActionResult CancelOrder(int orderId)
+        {
+            try
+            {
+                Order selectedOrder = repository.Get(orderId);
+
+                if (selectedOrder.StatusCode == Order.Status.Shipped)
+                {
+                    selectedOrder.StatusCode = Order.Status.Cancelled;
+                    repository.Edit(selectedOrder);
+              
+                    return Ok();
+                }
+                else
+                {
+                    return BadRequest("Order could not be cancelled");
+                }             
+            }
+            catch(Exception ex)
+            {
+                return BadRequest(ex.InnerException != null ? ex.Message + ex.InnerException : ex.Message);
+            }   
+        }
+
+        // POST api/orders
+        [HttpPost]
+        public async Task<IActionResult> Post([FromBody]Order order)
+        {
+            try
+            {
+                if (order == null)
+                {
+                    return BadRequest();
+                }
+
+                // Call ProductApi to get the product ordered
+                RestClient c = new RestClient();
+
+                // Check customer standing here
+                c.BaseUrl = new Uri("https://localhost:44318/Customers/");
+                var requestCustomer = new RestRequest(order.CustomerID.ToString(), Method.GET);
+                var responseCustomer = c.Execute<Customer>(requestCustomer);
+                var customer = responseCustomer.Data;
+
+                if (customer == null)
+                {
+                    return BadRequest("Customer could not be found");
+                }
+
+                if (customer.CreditStanding)
+                {
+                    var areProductsAvailable = await CheckIfProductsAreInStock(order.Products);
+                    if (areProductsAvailable == "true")
+                    {
+                        var wasSuccesfull = await addItemsToReserved(order.Products);
+                        order.StatusCode = Order.Status.Shipped;
+                        repository.Add(order);
+
+                        return Ok();
+                    }
+                    else
+                    {
+                        return BadRequest("Not enougch items in stock");
+                    }
+                }
+                else
+                {
+                    return BadRequest("Customer does not have resources to make a purchase");
+                }
+            }
+            catch(Exception ex)
+            {
+                return BadRequest(ex.InnerException != null ? ex.Message + ex.InnerException : ex.Message);
+            }
+        }
+
+        private async Task<String> CheckIfProductsAreInStock(IEnumerable<ProductDTO> listOfProducts)
+        {
+            var json = JsonConvert.SerializeObject(listOfProducts);
+            var data = new StringContent(json, Encoding.UTF8, "application/json");
+            var url = "https://localhost:44384/api/products/CheckIfInStock";
+            HttpClient client = new HttpClient();
+            var response = await client.PutAsync(url, data);
+            return response.Content.ReadAsStringAsync().Result;          
+        }
+        private async Task<String> addItemsToReserved(IEnumerable<ProductDTO> listOfProducts)
+        {
+            var json = JsonConvert.SerializeObject(listOfProducts);
+            var data = new StringContent(json, Encoding.UTF8, "application/json");
+            var url = "https://localhost:44384/api/products/ReserveProducts";
+            HttpClient client = new HttpClient();
+            var response = await client.PutAsync(url, data);
+            return response.Content.ReadAsStringAsync().Result;
+        }
     }
 }

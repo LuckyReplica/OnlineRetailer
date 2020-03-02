@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using Microsoft.AspNetCore.Mvc;
 using ProductApi.Data;
 using ProductApi.Models;
@@ -20,6 +21,51 @@ namespace ProductApi.Controllers
         public IEnumerable<Product> Get()
         {
             return repository.GetAll();
+        }
+
+        [HttpPut]
+        [Route("CheckIfInStock")]
+        public IActionResult CheckIfInStock([FromBody]IEnumerable<ProductDTO> productsInOrder)
+        {
+            try
+            {
+                foreach (var productDTO in productsInOrder)
+                {
+                    var product = repository.Get(productDTO.ProductId);
+                    if (product.ItemsInStock < productDTO.Quantity)
+                    {
+                        return Ok(false);
+                    }
+                }
+                return Ok(true);
+            }
+            catch(Exception ex)
+            {
+                return BadRequest(ex.InnerException != null ? ex.Message + ex.InnerException : ex.Message);
+            }
+            
+        }
+
+        [HttpPut]
+        [Route("ReserveProducts")]
+        public IActionResult ReserveProducts([FromBody]IEnumerable<ProductDTO> productsInOrder)
+        {
+            try
+            {
+                foreach (var productDTO in productsInOrder)
+                {
+                    var product = repository.Get(productDTO.ProductId);
+                    product.ItemsInStock -= productDTO.Quantity;
+                    product.ItemsReserved += productDTO.Quantity;
+                    repository.Edit(product);                    
+                }
+                return Ok();
+            }
+            catch(Exception ex)
+            {
+                return BadRequest(ex.InnerException != null ? ex.Message + ex.InnerException : ex.Message);
+            }
+            
         }
 
         // GET api/products/5

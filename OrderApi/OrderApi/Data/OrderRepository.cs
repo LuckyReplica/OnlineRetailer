@@ -34,6 +34,12 @@ namespace OrderApi.Data
         Order IRepository<Order>.Get(int id)
         {
             return db.Orders.FirstOrDefault(o => o.Id == id);
+            //return db.Orders.Where(o => o.Id == id).Include(l => l.Products);
+        }
+        IEnumerable<Order> IRepository<Order>.GetAllByCustomer(int customerId)
+        {
+            IEnumerable < Order > orders = db.Orders.Where(o => o.Id == customerId);
+            return orders;
         }
 
         IEnumerable<Order> IRepository<Order>.GetAll()

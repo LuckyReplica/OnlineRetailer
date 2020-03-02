@@ -9,5 +9,6 @@ namespace OrderApi.Data
         T Add(T entity);
         void Edit(T entity);
         void Remove(int id);
+        IEnumerable<T> GetAllByCustomer(int customerId);
     }
 }

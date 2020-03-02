@@ -9,6 +9,7 @@ namespace ProductApi.Data
     {
         private readonly ProductApiContext db;
 
+        //check if ProductsInOrder are in stock
         public ProductRepository(ProductApiContext context)
         {
             db = context;
