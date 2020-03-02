@@ -45,5 +45,29 @@ namespace CustomerApi.Controllers
             var newCustomer = repository.Add(customer);
             return CreatedAtRoute("GetCustomer", new { id = newCustomer.Id }, newCustomer);
         }
+
+        [HttpPut]
+        public IActionResult Edit([FromBody]Customer customer)
+        {
+            if (customer == null)
+            {
+                return BadRequest();
+            }
+
+            repository.Edit(customer);
+            return StatusCode(204);
+        }
+
+        [HttpDelete("{id}")]
+        public IActionResult Remove(int id)
+        {
+            if (id == 0)
+            {
+                return BadRequest();
+            }
+
+            repository.Remove(id);
+            return StatusCode(204);
+        }
     }
 }
