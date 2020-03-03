@@ -117,7 +117,7 @@ namespace OrderApi.Controllers
                     }
                     else
                     {
-                        return BadRequest("Not enougch items in stock");
+                        return BadRequest("Not enough items in stock");
                     }
                 }
                 else
