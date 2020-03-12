@@ -41,10 +41,10 @@ namespace OrderApi.Infrastructure
         public Customer RequestCustomer(int id)
         {
             var cq = new CustomerRequest { Id = id };
-            var response = bus.Request<CustomerRequest, ReturnedCustomer>(cq);
-            //var response = bus.Request<CustomerRequest, Customer>(cq);
-            return response.customer;
-            //return response;
+            //var response = bus.Request<CustomerRequest, ReturnedCustomer>(cq);
+            var response = bus.Request<CustomerRequest, Customer>(cq);
+            //return response.customer;
+            return response;
         }
     }
 }

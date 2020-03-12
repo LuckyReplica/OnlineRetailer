@@ -25,7 +25,8 @@ namespace CustomerApi.Infrastructure
         {
             using (var bus = RabbitHutch.CreateBus(connectionString))
             {
-                bus.Respond<CustomerRequest, ReturnedCustomer>(request => new ReturnedCustomer { customer = HandleCustomerRequest(request.Id)});
+                //bus.Respond<CustomerRequest, ReturnedCustomer>(request => new ReturnedCustomer { customer = HandleCustomerRequest(request.Id) });
+                bus.Respond<CustomerRequest, Customer>(request => HandleCustomerRequest(request.Id));
                 //bus.Respond<CustomerRequest, Customer>(request => new Customer { Id = 1, Name = "customer1", Email = "e1@mail.com", PhoneNumber = "1234", BillingAddress = "billingAddress1", ShippingAddress = "shippingAddress1", CreditStanding = true });
 
                 // block the thread so that it will not exit and stop subscribing.
