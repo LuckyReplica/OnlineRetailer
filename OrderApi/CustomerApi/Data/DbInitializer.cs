@@ -21,7 +21,8 @@ namespace CustomerApi.Data
 
             List<Customer> customers = new List<Customer>
             {
-                new Customer { Id = 1, Name = "customer1", Email = "e1@mail.com", PhoneNumber = "1234", BillingAddress = "billingAddress1", ShippingAddress = "shippingAddress1", CreditStanding = true}
+                new Customer { Id = 1, Name = "customer1", Email = "e1@mail.com", PhoneNumber = "1234", BillingAddress = "billingAddress1", ShippingAddress = "shippingAddress1", CreditStanding = true},
+                new Customer { Id = 2, Name = "customer2", Email = "e2@mail.com", PhoneNumber = "5678", BillingAddress = "billingAddress2", ShippingAddress = "shippingAddress2", CreditStanding = false}
             };
 
             context.Customers.AddRange(customers);

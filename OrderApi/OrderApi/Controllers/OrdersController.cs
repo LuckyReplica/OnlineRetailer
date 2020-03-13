@@ -151,11 +151,15 @@ namespace OrderApi.Controllers
                 // Call ProductApi to get the product ordered
                 RestClient c = new RestClient();
 
+                // Get customer via http GET call.
                 // Check customer standing here
-                c.BaseUrl = new Uri("https://localhost:52063/customers/");
-                var requestCustomer = new RestRequest(order.CustomerID.ToString(), Method.GET);
-                var responseCustomer = c.Execute<SharedModels.Customer>(requestCustomer);
-                var customer = responseCustomer.Data;
+                //c.BaseUrl = new Uri("https://localhost:44318/customers/");
+                //var requestCustomer = new RestRequest(order.CustomerID.ToString(), Method.GET);
+                //var responseCustomer = c.Execute<SharedModels.Customer>(requestCustomer);
+                //var customer = responseCustomer.Data;
+
+                // Get customer via rabbitmq request.
+                var customer = messagePublisher.RequestCustomer(order.CustomerID);
 
                 if (customer == null)
                 {

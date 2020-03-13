@@ -7,11 +7,14 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using CustomerApi.Data;
 using CustomerApi.Models;
+using System.Threading.Tasks;
+using CustomerApi.Infrastructure;
 
 namespace CustomerApi
 {
     public class Startup
     {
+        string cloudAMQPConnectionString = "host=crow.rmq.cloudamqp.com;virtualHost=lbutosez;username=lbutosez;password=qXd-hBNlJiQ-i0cWEKHmcuLHZIsMLTHt";
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
@@ -46,6 +49,11 @@ namespace CustomerApi
                 var dbInitializer = services.GetService<IDbInitializer>();
                 dbInitializer.Initialize(dbContext);
             }
+
+            // Create a message listener in a separate thread.
+            Task.Factory.StartNew(() =>
+                new MessageListener(app.ApplicationServices, cloudAMQPConnectionString).Start());
+
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
