@@ -41,6 +41,14 @@ namespace OrderApi.Controllers
             return repository.GetAll();
         }
 
+        [HttpGet]
+        [Route("getCustomerById/{id}")]
+        public SharedModels.Customer GetCustomer(int id)
+        {
+            var customer = messagePublisher.RequestCustomer(id);
+            return customer;
+        }
+
         // GET api/products/5
         [HttpGet]
         [Route("getById/{id}")]
@@ -74,6 +82,57 @@ namespace OrderApi.Controllers
                 return StatusCode(200, "Connection worked");
             }
             return StatusCode(200, "Connection worked");
+        }
+
+        [HttpPut]
+        [Route("shipOrder/{orderId}")]
+        public IActionResult ShipOrder(int orderId)
+        {
+            try
+            {
+                Models.Order selectedOrder = repository.Get(orderId);
+                if (selectedOrder.StatusCode == Models.Order.Status.Paid)
+                {
+                    selectedOrder.StatusCode = Models.Order.Status.Completed;
+
+                    return Ok();
+                }
+                else
+                {
+                    return BadRequest("The order has not been paid for. (State of order: " + selectedOrder.StatusCode.ToString());
+                }
+
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+
+        }
+
+        [HttpPut]
+        [Route("payOrder/{orderId}")]
+        public IActionResult PayOrder(int orderId)
+        {
+            try
+            {
+                Models.Order selectedOrder = repository.Get(orderId);
+
+                if (selectedOrder.StatusCode == Models.Order.Status.Completed)
+                {
+                    selectedOrder.StatusCode = Models.Order.Status.Paid;
+
+                    return Ok();
+                }
+                else
+                {
+                    return BadRequest("The order could not be paid for");
+                }
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
 
         [HttpPut]
@@ -115,9 +174,11 @@ namespace OrderApi.Controllers
             {
                 try
                 {
+                    //messagePublisher.PublishOrderStatusChangedMessage(
+                    //    1, new SharedModels.Order.OrderLine[] { new SharedModels.Order.OrderLine() {OrderId = 1, ProductId = 1, Quantity=10 } }, "completed");
                     // Publish OrderStatusChangedMessage. If this operation
                     // fails, the order will not be created
-                     messagePublisher.PublishOrderStatusChangedMessage(
+                    messagePublisher.PublishOrderStatusChangedMessage(
                        order.customerId, order.OrderLines, "completed");
 
                     // Create order.

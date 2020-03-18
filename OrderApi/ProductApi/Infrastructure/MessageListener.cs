@@ -31,6 +31,10 @@ namespace ProductApi.Infrastructure
                 bus.Subscribe<OrderStatusChangedMessage>("productApiHkCompleted",
                     HandleOrderCompleted, x => x.WithTopic("completed"));
 
+                bus.Subscribe<OrderStatusChangedMessage>("productApiCancelled", HandleOrderCancelled, x => x.WithTopic("cancelled"));
+
+                bus.Subscribe<OrderStatusChangedMessage>("productApiShipped", HandleOrderShipped, x => x.WithTopic("shipped"));
+
                 // Add code to subscribe to other OrderStatusChanged events:
                 // * cancelled
                 // * shipped
@@ -66,6 +70,39 @@ namespace ProductApi.Infrastructure
                 {
                     var product = productRepos.Get(orderLine.ProductId);
                     product.ItemsReserved += orderLine.Quantity;
+                    productRepos.Edit(product);
+                }
+            }
+        }
+
+        private void HandleOrderCancelled(OrderStatusChangedMessage message)
+        {
+            using (var scope = provider.CreateScope())
+            {
+                var services = scope.ServiceProvider;
+                var productRepos = services.GetService<IRepository<Product>>();
+
+                foreach (var orderLine in message.OrderLines)
+                {
+                    var product = productRepos.Get(orderLine.ProductId);
+                    product.ItemsInStock += orderLine.Quantity;
+                    product.ItemsReserved -= orderLine.Quantity;
+                    productRepos.Edit(product);
+                }
+            }
+        }
+
+        private void HandleOrderShipped(OrderStatusChangedMessage message)
+        {
+            using (var scope = provider.CreateScope())
+            {
+                var services = scope.ServiceProvider;
+                var productRepos = services.GetService<IRepository<Product>>();
+
+                foreach (var orderLine in message.OrderLines)
+                {
+                    var product = productRepos.Get(orderLine.ProductId);
+                    product.ItemsReserved -= orderLine.Quantity;
                     productRepos.Edit(product);
                 }
             }

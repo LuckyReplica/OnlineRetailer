@@ -32,12 +32,6 @@ namespace OrderApi.Infrastructure
             bus.Publish(message, topic);
         }
 
-        // Need to implement this or theres interface issues.
-        public void PublishOrderStatusChangedMessage(int? customerId, IEnumerable<Order.OrderLine> orderLines, string topic)
-        {
-            throw new NotImplementedException();
-        }
-
         public Customer RequestCustomer(int id)
         {
             var cq = new CustomerRequest { Id = id };
