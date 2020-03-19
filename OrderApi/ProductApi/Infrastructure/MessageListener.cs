@@ -107,7 +107,7 @@ namespace ProductApi.Infrastructure
 
                 foreach (var orderLine in message.OrderLines)
                 {
-                    var product = productRepos.Get(orderLine.id);
+                    var product = productRepos.Get(orderLine.ProductId);
 
                     if (product.ItemsInStock < orderLine.Quantity)
                     {

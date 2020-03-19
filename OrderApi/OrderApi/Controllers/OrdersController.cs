@@ -39,6 +39,18 @@ namespace OrderApi.Controllers
             }
         }
 
+        // GET orders/5
+        [HttpGet("{id}", Name = "GetOrder")]
+        public IActionResult Get(int id)
+        {
+            var item = repository.Get(id);
+            if (item == null)
+            {
+                return NotFound();
+            }
+            return new ObjectResult(item);
+        }
+
         [HttpGet]
         [Route("getCustomerById/{id}")]
         public Customer GetCustomer(int id)
@@ -56,7 +68,7 @@ namespace OrderApi.Controllers
 
         [HttpGet]
         [Route("getById/{id}")]
-        public IActionResult Get(int id)
+        public IActionResult GetByID(int id)
         {
             try
             {
@@ -119,7 +131,7 @@ namespace OrderApi.Controllers
                         order.Status = Order.OrderStatus.completed;
 
                         var newOrder = repository.Add(order);
-                        return CreatedAtRoute("GetOrder", newOrder);
+                        return CreatedAtRoute("GetOrder", new { id = newOrder.Id }, newOrder);
                     }
                     catch
                     {
@@ -156,7 +168,7 @@ namespace OrderApi.Controllers
                     messagePublisher.PublishOrderStatusChangedMessage(
                        selectedOrder.customerId, selectedOrder.OrderLines, "shipped");
 
-                    selectedOrder.Status = Order.OrderStatus.completed;
+                    selectedOrder.Status = Order.OrderStatus.shipped;
 
                     repository.Edit(selectedOrder);
                 }
