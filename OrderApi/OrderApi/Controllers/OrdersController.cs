@@ -99,7 +99,15 @@ namespace OrderApi.Controllers
 
             if (ProductItemsAvailable(order))
             {
-                if (GetCustomer(order.customerId).CreditStanding)
+
+                var customer = GetCustomer(order.customerId);
+
+                if (customer == null)
+                {
+                    return StatusCode(500, "The customer does not exist!");
+                }
+
+                if (customer.CreditStanding)
                 {
                     try
                     {
