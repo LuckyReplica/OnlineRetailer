@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using System.Linq;
-using CustomerApi.Models;
+using SharedModels;
 
 namespace CustomerApi.Data
 {

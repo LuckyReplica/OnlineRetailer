@@ -6,7 +6,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using ProductApi.Data;
 using ProductApi.Infrastructure;
-using ProductApi.Models;
+using SharedModels;
 using System.Threading.Tasks;
 
 namespace ProductApi

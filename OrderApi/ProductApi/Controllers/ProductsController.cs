@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using Microsoft.AspNetCore.Mvc;
 using ProductApi.Data;
-using ProductApi.Models;
+using SharedModels;
 
 namespace ProductApi.Controllers
 {
@@ -25,7 +25,7 @@ namespace ProductApi.Controllers
 
         [HttpPut]
         [Route("CheckIfInStock")]
-        public IActionResult CheckIfInStock([FromBody]IEnumerable<ProductDTO> productsInOrder)
+        public IActionResult CheckIfInStock([FromBody]IEnumerable<Order.OrderLine> productsInOrder)
         {
             try
             {
@@ -48,7 +48,7 @@ namespace ProductApi.Controllers
 
         [HttpPut]
         [Route("ReserveProducts")]
-        public IActionResult ReserveProducts([FromBody]IEnumerable<ProductDTO> productsInOrder)
+        public IActionResult ReserveProducts([FromBody]IEnumerable<Order.OrderLine> productsInOrder)
         {
             try
             {
@@ -68,68 +68,91 @@ namespace ProductApi.Controllers
             
         }
 
-        // GET api/products/5
         [HttpGet("{id}", Name="GetProduct")]
         public IActionResult Get(int id)
         {
-            var item = repository.Get(id);
-            if (item == null)
+            try
             {
-                return NotFound();
+                var item = repository.Get(id);
+
+                if (item == null)
+                {
+                    return NotFound("Product could not be found");
+                }
+
+                return new ObjectResult(item);
             }
-            return new ObjectResult(item);
+            catch (Exception ex)
+            {
+                return BadRequest(ex.InnerException != null ? ex.Message + ex.InnerException : ex.Message);
+            }
         }
 
-        // POST api/products
         [HttpPost]
         public IActionResult Post([FromBody]Product product)
         {
-            if (product == null)
+            try
             {
-                return BadRequest();
+                if (product == null)
+                {
+                    return BadRequest("Product could not be created");
+                }
+
+                var newProduct = repository.Add(product);
+
+                return CreatedAtRoute("GetProduct", new { id = newProduct.Id }, newProduct);
             }
-
-            var newProduct = repository.Add(product);
-
-            return CreatedAtRoute("GetProduct", new { id = newProduct.Id }, newProduct);
+            catch (Exception ex)
+            {
+                return BadRequest(ex.InnerException != null ? ex.Message + ex.InnerException : ex.Message);
+            }
         }
 
-        // PUT api/products/5
         [HttpPut("{id}")]
         public IActionResult Put(int id, [FromBody]Product product)
         {
-            if (product == null || product.Id != id)
+            try
             {
-                return BadRequest();
+                if (product == null || product.Id != id)
+                {
+                    return BadRequest("Product could not be updated");
+                }
+
+                var modifiedProduct = repository.Get(id);
+
+                if (modifiedProduct == null)
+                {
+                    return NotFound("Produck was not found");
+                }
+
+                repository.Edit(modifiedProduct);
+
+                return StatusCode(204);
             }
-
-            var modifiedProduct = repository.Get(id);
-
-            if (modifiedProduct == null)
+            catch (Exception ex)
             {
-                return NotFound();
+                return BadRequest(ex.InnerException != null ? ex.Message + ex.InnerException : ex.Message);
             }
-
-            modifiedProduct.Name = product.Name;
-            modifiedProduct.Price = product.Price;
-            modifiedProduct.ItemsInStock = product.ItemsInStock;
-            modifiedProduct.ItemsReserved = product.ItemsReserved;
-
-            repository.Edit(modifiedProduct);
-            return new NoContentResult();
         }
 
-        // DELETE api/products/5
         [HttpDelete("{id}")]
         public IActionResult Delete(int id)
         {
-            if (repository.Get(id) == null)
+            try
             {
-                return NotFound();
-            }
+                if (repository.Get(id) == null)
+                {
+                    return NotFound();
+                }
 
-            repository.Remove(id);
-            return new NoContentResult();
+                repository.Remove(id);
+
+                return StatusCode(410);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.InnerException != null ? ex.Message + ex.InnerException : ex.Message);
+            }
         }
     }
 }

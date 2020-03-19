@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using System.Linq;
-using ProductApi.Models;
+using SharedModels;
 
 namespace ProductApi.Data
 {
@@ -9,7 +9,6 @@ namespace ProductApi.Data
     {
         private readonly ProductApiContext db;
 
-        //check if ProductsInOrder are in stock
         public ProductRepository(ProductApiContext context)
         {
             db = context;

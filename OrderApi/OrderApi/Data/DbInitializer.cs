@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using OrderApi.Models;
+using SharedModels;
 using System;
 
 namespace OrderApi.Data
@@ -19,14 +19,14 @@ namespace OrderApi.Data
                 return;   // DB has been seeded
             }
 
-            List<ProductDTO> products = new List<ProductDTO>
+            List<Order.OrderLine> products = new List<Order.OrderLine>
             {
-                new ProductDTO {OrderId = 1, ProductId = 1, PriceForAll = 10, Quantity = 10}
+                new Order.OrderLine {OrderId = 1, ProductId = 1,  Quantity = 10}
             };
 
             List<Order> orders = new List<Order>
             {
-                new Order { Date = DateTime.Today, Products = products},
+                new Order { Date = DateTime.Today, OrderLines = products},
                 new Order { Date = DateTime.Today}
             };
 

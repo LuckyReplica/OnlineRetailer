@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using OrderApi.Data;
-using OrderApi.Models;
+using SharedModels;
 using Microsoft.OpenApi.Models;
 using System;
 using OrderApi.Infrastructure;
@@ -40,7 +40,7 @@ namespace OrderApi
             services.AddDbContext<OrderApiContext>(opt => opt.UseInMemoryDatabase("OrdersDb"));
 
             // Register repositories for dependency injection
-            services.AddScoped<IRepository<OrderApi.Models.Order>, OrderRepository>();
+            services.AddScoped<IRepository<Order>, OrderRepository>();
 
             // Register database initializer for dependency injection
             services.AddTransient<IDbInitializer, DbInitializer>();

@@ -1,8 +1,8 @@
 ﻿using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using System.Linq;
-using OrderApi.Models;
 using System;
+using SharedModels;
 
 namespace OrderApi.Data
 {
@@ -33,7 +33,7 @@ namespace OrderApi.Data
 
         Order IRepository<Order>.Get(int id)
         {
-            return db.Orders.Where(o => o.Id == id).Include(m => m.Products).FirstOrDefault();
+            return db.Orders.Where(o => o.Id == id).Include(m => m.OrderLines).FirstOrDefault();
         }
         IEnumerable<Order> IRepository<Order>.GetAllByCustomer(int customerId)
         {
