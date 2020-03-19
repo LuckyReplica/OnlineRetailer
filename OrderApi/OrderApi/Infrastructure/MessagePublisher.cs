@@ -42,6 +42,13 @@ namespace OrderApi.Infrastructure
 
             bus.Publish(message, topic);
         }
+        public bool IsInStock(Order order)
+        {
+            var orderLines = new OrderStatusChangedMessage { OrderLines = order.OrderLines };
+            var response = bus.Request<OrderStatusChangedMessage, IsInSockRequest>(orderLines);
+
+            return response.isInStock;
+        }
 
         public Customer RequestCustomer(int id)
         {

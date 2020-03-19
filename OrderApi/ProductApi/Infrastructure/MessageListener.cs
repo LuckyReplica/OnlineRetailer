@@ -34,6 +34,8 @@ namespace ProductApi.Infrastructure
 
                 bus.Subscribe<OrderStatusChangedMessage>("productApiShipped", HandleOrderShipped, x => x.WithTopic("shipped"));
 
+                bus.Respond<OrderStatusChangedMessage, IsInSockRequest>(request => HandleCheckIfInStock(request));
+
                 // Block the thread so that it will not exit and stop subscribing.
                 lock (this)
                 {
@@ -94,6 +96,26 @@ namespace ProductApi.Infrastructure
                     productRepos.Edit(product);
                 }
             }
+        }
+
+        private IsInSockRequest HandleCheckIfInStock(OrderStatusChangedMessage message)
+        {
+            using (var scope = provider.CreateScope())
+            {
+                var services = scope.ServiceProvider;
+                var productRepos = services.GetService<IRepository<Product>>();
+
+                foreach (var orderLine in message.OrderLines)
+                {
+                    var product = productRepos.Get(orderLine.id);
+
+                    if (product.ItemsInStock < orderLine.Quantity)
+                    {
+                        return new IsInSockRequest { isInStock = false };
+                    }                
+                }
+            }
+            return new IsInSockRequest { isInStock = true };
         }
     }
 }

@@ -13,5 +13,7 @@ namespace OrderApi.Infrastructure
         void PublishCreditStandingChangedMessage(int customerId, bool creditStanding, string topic);
 
         Customer RequestCustomer(int id);
+
+        bool IsInStock(Order order);
     }
 }

@@ -115,14 +115,14 @@ namespace OrderApi.Controllers
 
         [HttpPost]
         [Route("CreateOrder")]
-        public IActionResult Post([FromBody]SharedModels.Order order)
+        public IActionResult Post([FromBody]Order order)
         {
             if (order == null)
             {
                 return BadRequest("Order could not be created");
             }
 
-            if (ProductItemsAvailable(order))
+            if (messagePublisher.IsInStock(order))
             {
                 if (GetCustomer(order.customerId).CreditStanding)
                 {
