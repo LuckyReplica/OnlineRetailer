@@ -9,7 +9,6 @@ using SharedModels;
 using Microsoft.OpenApi.Models;
 using System;
 using OrderApi.Infrastructure;
-using SharedModels;
 
 namespace OrderApi
 {
