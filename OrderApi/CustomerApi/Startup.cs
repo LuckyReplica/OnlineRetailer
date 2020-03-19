@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using CustomerApi.Data;
-using CustomerApi.Models;
+using SharedModels;
 using System.Threading.Tasks;
 using CustomerApi.Infrastructure;
 

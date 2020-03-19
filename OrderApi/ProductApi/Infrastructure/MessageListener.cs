@@ -28,22 +28,11 @@ namespace ProductApi.Infrastructure
         {
             using (var bus = RabbitHutch.CreateBus(connectionString))
             {
-                bus.Subscribe<OrderStatusChangedMessage>("productApiHkCompleted",
-                    HandleOrderCompleted, x => x.WithTopic("completed"));
+                bus.Subscribe<OrderStatusChangedMessage>("productApiHkCompleted", HandleOrderCompleted, x => x.WithTopic("completed"));
 
-                bus.Subscribe<OrderStatusChangedMessage>("productApiCancelled", HandleOrderCancelled, x => x.WithTopic("cancelled"));
+                bus.Subscribe<OrderStatusChangedMessage>("productApiCancelledCompleted", HandleOrderCancelled, x => x.WithTopic("cancelled"));
 
                 bus.Subscribe<OrderStatusChangedMessage>("productApiShipped", HandleOrderShipped, x => x.WithTopic("shipped"));
-
-                // Add code to subscribe to other OrderStatusChanged events:
-                // * cancelled
-                // * shipped
-                // * paid
-                // Implement an event handler for each of these events.
-                // Be careful that each subscribe has a unique subscription id
-                // (this is the first parameter to the Subscribe method). If they
-                // get the same subscription id, they will listen on the same
-                // queue.
 
                 // Block the thread so that it will not exit and stop subscribing.
                 lock (this)
@@ -64,12 +53,11 @@ namespace ProductApi.Infrastructure
                 var services = scope.ServiceProvider;
                 var productRepos = services.GetService<IRepository<Product>>();
 
-                // Reserve items of ordered product (should be a single transaction).
-                // Beware that this operation is not idempotent.
                 foreach (var orderLine in message.OrderLines)
                 {
                     var product = productRepos.Get(orderLine.ProductId);
                     product.ItemsReserved += orderLine.Quantity;
+                    product.ItemsInStock -= orderLine.Quantity;
                     productRepos.Edit(product);
                 }
             }
@@ -107,6 +95,5 @@ namespace ProductApi.Infrastructure
                 }
             }
         }
-
     }
 }

@@ -1,5 +1,4 @@
-﻿using OrderApi.Models;
-using RestSharp;
+﻿using RestSharp;
 using SharedModels;
 using System;
 using System.Collections.Generic;

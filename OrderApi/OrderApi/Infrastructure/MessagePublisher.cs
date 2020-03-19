@@ -21,12 +21,23 @@ namespace OrderApi.Infrastructure
             bus.Dispose();
         }
 
-        public void PublishOrderStatusChangedMessage(int? customerId, IEnumerable<Order.OrderLine> orderLines, string topic)
+        public void PublishOrderStatusChangedMessage(int customerId, IEnumerable<Order.OrderLine> orderLines, string topic)
         {
             var message = new OrderStatusChangedMessage
             {
                 CustomerID = customerId,
                 OrderLines = orderLines
+            };
+
+            bus.Publish(message, topic);
+        }
+
+        public void PublishCreditStandingChangedMessage(int customerId, bool creditStanding, string topic)
+        {
+            var message = new CreditStandingChangeMessage
+            {
+                ClientId = customerId,
+                CreditStanding = creditStanding
             };
 
             bus.Publish(message, topic);

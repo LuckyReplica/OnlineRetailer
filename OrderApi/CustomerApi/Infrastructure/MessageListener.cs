@@ -25,9 +25,9 @@ namespace CustomerApi.Infrastructure
         {
             using (var bus = RabbitHutch.CreateBus(connectionString))
             {
-                //bus.Respond<CustomerRequest, ReturnedCustomer>(request => new ReturnedCustomer { customer = HandleCustomerRequest(request.Id) });
                 bus.Respond<CustomerRequest, Customer>(request => HandleCustomerRequest(request.Id));
-                //bus.Respond<CustomerRequest, Customer>(request => new Customer { Id = 1, Name = "customer1", Email = "e1@mail.com", PhoneNumber = "1234", BillingAddress = "billingAddress1", ShippingAddress = "shippingAddress1", CreditStanding = true });
+
+                bus.Subscribe<CreditStandingChangeMessage>("customerChangeCreditStanding", HandleCreditStanding, x => x.WithTopic("creditStanding.*"));
 
                 // block the thread so that it will not exit and stop subscribing.
                 lock (this)
@@ -45,20 +45,35 @@ namespace CustomerApi.Infrastructure
             using (var scope = provider.CreateScope())
             {
                 var services = scope.ServiceProvider;
-                var customerRepos = services.GetService<IRepository<Models.Customer>>();
+                var customerRepos = services.GetService<IRepository<Customer>>();
+
                 var localCustomer = customerRepos.Get(id);
+
                 var customer = new SharedModels.Customer()
                 {
                     Id = localCustomer.Id,
                     BillingAddress = localCustomer.BillingAddress,
-                    CreditStanding = localCustomer.CreditStanding
-                ,
+                    CreditStanding = localCustomer.CreditStanding,
                     Email = localCustomer.Email,
                     Name = localCustomer.Name,
                     PhoneNumber = localCustomer.PhoneNumber,
                     ShippingAddress = localCustomer.ShippingAddress
                 };
+
                 return customer;
+            }
+        }
+
+        private void HandleCreditStanding(CreditStandingChangeMessage message)
+        {
+            using (var scope = provider.CreateScope())
+            {
+                var services = scope.ServiceProvider;
+                var customerRepos = services.GetService<IRepository<Customer>>();
+
+                var localCustomer = customerRepos.Get(message.ClientId);
+
+                localCustomer.CreditStanding = message.CreditStanding;            
             }
         }
     }

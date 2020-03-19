@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using CustomerApi.Models;
+using SharedModels;
 
 namespace CustomerApi.Data
 {

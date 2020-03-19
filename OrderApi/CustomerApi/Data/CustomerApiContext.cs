@@ -1,5 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using CustomerApi.Models;
+using SharedModels;
 
 namespace CustomerApi.Data
 {
@@ -9,7 +9,6 @@ namespace CustomerApi.Data
             : base(options)
         {
         }
-
         public DbSet<Customer> Customers { get; set; }
     }
 }
