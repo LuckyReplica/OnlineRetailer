@@ -88,31 +88,6 @@ namespace OrderApi.Controllers
             }
         }
 
-        // remove this one no need to have it 
-        [HttpGet]
-        [Route("getByProductId/{productId}")]
-        public IActionResult GetProductById(int productId)
-        {
-            try
-            {
-                var ord = new SharedModels.Order();
-                var orderline = new SharedModels.Order.OrderLine { ProductId = 1, OrderId = 1, id = 1, Quantity = 1 };
-
-                ord.OrderLines = new SharedModels.Order.OrderLine[] { orderline };
-
-                if (ProductItemsAvailable(ord))
-                {
-                    return StatusCode(200, "Connection worked");
-                }
-                return StatusCode(200, "Connection worked");
-
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(ex.InnerException != null ? ex.Message + ex.InnerException : ex.Message);
-            }
-        }
-
         [HttpPost]
         [Route("CreateOrder")]
         public IActionResult Post([FromBody]Order order)
@@ -209,12 +184,11 @@ namespace OrderApi.Controllers
                 if (selectedOrder.Status == Order.OrderStatus.shipped)
                 {
                     selectedOrder.Status = Order.OrderStatus.paid;
+                    messagePublisher.PublishOrderStatusChangedMessage(selectedOrder.customerId, selectedOrder.OrderLines, "paid");
+                        
 
                     repository.Edit(selectedOrder);
 
-                    //return credit to user?
-
-                    // no need to message products
                     return Ok("Transaction was succesful");
                 }
                 else
@@ -268,6 +242,16 @@ namespace OrderApi.Controllers
 
                     return Ok("Order was cancelled");
                 }
+                else if (selectedOrder.Status == Order.OrderStatus.paid) {
+                    messagePublisher.PublishOrderStatusChangedMessage(
+                      selectedOrder.customerId, selectedOrder.OrderLines, "cancelled");
+
+                    selectedOrder.Status = Order.OrderStatus.cancelled;
+
+                    repository.Edit(selectedOrder);
+
+                    return Ok("Order was cancelled");
+                }
                 else
                 {
                     return BadRequest("Order could not be cancelled");
@@ -279,53 +263,6 @@ namespace OrderApi.Controllers
             }
         }
 
-        /*[HttpPost]
-        public async Task<IActionResult> Post([FromBody]Order order)
-        {
-            try
-            {
-                if (order == null)
-                {
-                    return BadRequest("Could not create order");
-                }
-
-                // Call ProductApi to get the product ordered
-                RestClient c = new RestClient();
-
-                // Get customer via rabbitmq request.
-                var customer = messagePublisher.RequestCustomer(order.customerId);
-
-                if (customer == null)
-                {
-                    return BadRequest("Customer could not be found");
-                }
-
-                if (customer.CreditStanding)
-                {
-                    var areProductsAvailable = await CheckIfProductsAreInStock(order.OrderLines);
-                    if (areProductsAvailable == "true")
-                    {
-                        var wasSuccesfull = await addItemsToReserved(order.);
-                        order.StatusCode = Models.Order.Status.Shipped;
-                        repository.Add(order);
-
-                        return Ok();
-                    }
-                    else
-                    {
-                        return BadRequest("Not enough items in stock");
-                    }
-                }
-                else
-                {
-                    return BadRequest("Customer does not have resources to make a purchase");
-                }
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(ex.InnerException != null ? ex.Message + ex.InnerException : ex.Message);
-            }
-        }*/
 
         private bool ProductItemsAvailable(Order order)
         {
@@ -339,28 +276,6 @@ namespace OrderApi.Controllers
                 }
             }
             return true;
-        }
-
-        // remove
-        private async Task<String> CheckIfProductsAreInStock(IEnumerable<Order.OrderStatus> listOfProducts)
-        {
-            var json = JsonConvert.SerializeObject(listOfProducts);
-            var data = new StringContent(json, Encoding.UTF8, "application/json");
-            var url = "https://localhost:44384/api/products/CheckIfInStock";
-            HttpClient client = new HttpClient();
-            var response = await client.PutAsync(url, data);
-            return response.Content.ReadAsStringAsync().Result;
-        }
-
-        // remove
-        private async Task<String> addItemsToReserved(IEnumerable<Order.OrderStatus> listOfProducts)
-        {
-            var json = JsonConvert.SerializeObject(listOfProducts);
-            var data = new StringContent(json, Encoding.UTF8, "application/json");
-            var url = "https://localhost:44384/api/products/ReserveProducts";
-            HttpClient client = new HttpClient();
-            var response = await client.PutAsync(url, data);
-            return response.Content.ReadAsStringAsync().Result;
         }
     }
 }
