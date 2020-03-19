@@ -29,6 +29,10 @@ namespace CustomerApi.Infrastructure
 
                 bus.Subscribe<CreditStandingChangeMessage>("customerChangeCreditStanding", HandleCreditStanding, x => x.WithTopic("creditStanding.*"));
 
+                bus.Subscribe<OrderStatusChangedMessage>("customerApiShipped", HandleCustomerOrderShipped, x => x.WithTopic("shipped"));
+                
+                bus.Subscribe<OrderStatusChangedMessage>("customerApiPaid", HandleCustomerPaid, x => x.WithTopic("paid"));
+
                 // block the thread so that it will not exit and stop subscribing.
                 lock (this)
                 {
@@ -74,6 +78,36 @@ namespace CustomerApi.Infrastructure
                 var localCustomer = customerRepos.Get(message.ClientId);
 
                 localCustomer.CreditStanding = message.CreditStanding;            
+            }
+        }
+
+        private void HandleCustomerPaid(OrderStatusChangedMessage message)
+        {
+            using (var scope = provider.CreateScope())
+            {
+                var services = scope.ServiceProvider;
+                var customerRepos = services.GetService<IRepository<Customer>>();
+
+                var localCustomer = customerRepos.Get(message.CustomerID);
+
+                localCustomer.CreditStanding = true;
+
+                customerRepos.Edit(localCustomer);
+            }
+        }
+
+        private void HandleCustomerOrderShipped(OrderStatusChangedMessage message)
+        {
+            using (var scope = provider.CreateScope())
+            {
+                var services = scope.ServiceProvider;
+                var customerRepos = services.GetService<IRepository<Customer>>();
+
+                var localCustomer = customerRepos.Get(message.CustomerID);
+
+                localCustomer.CreditStanding = false;
+
+                customerRepos.Edit(localCustomer);
             }
         }
     }
