@@ -69,20 +69,20 @@ namespace OrderApi.Controllers
             return repository.GetAllByCustomer(customerId);
         }
 
-        [HttpGet]
-        [Route("getByProductId/{productId}")]
-        public IActionResult GetProductById(int productId)
-        {
-            var ord = new SharedModels.Order();
-            var orderline = new SharedModels.Order.OrderLine { ProductId = 1, OrderId = 1, id = 1, Quantity = 1 };
+        //[HttpGet]
+        //[Route("getByProductId/{productId}")]
+        //public IActionResult GetProductById(int productId)
+        //{
+        //    var ord = new SharedModels.Order();
+        //    var orderline = new SharedModels.Order.OrderLine { ProductId = 1, OrderId = 1, id = 1, Quantity = 1 };
 
-            ord.OrderLines = new SharedModels.Order.OrderLine[] { orderline };
-            if (ProductItemsAvailable(ord))
-            {
-                return StatusCode(200, "Connection worked");
-            }
-            return StatusCode(200, "Connection worked");
-        }
+        //    ord.OrderLines = new SharedModels.Order.OrderLine[] { orderline };
+        //    if (ProductItemsAvailable(ord))
+        //    {
+        //        return StatusCode(200, "Connection worked");
+        //    }
+        //    return StatusCode(200, "Connection worked");
+        //}
 
         [HttpPut]
         [Route("shipOrder/{orderId}")]
@@ -178,11 +178,14 @@ namespace OrderApi.Controllers
                     //    1, new SharedModels.Order.OrderLine[] { new SharedModels.Order.OrderLine() {OrderId = 1, ProductId = 1, Quantity=10 } }, "completed");
                     // Publish OrderStatusChangedMessage. If this operation
                     // fails, the order will not be created
-                    messagePublisher.PublishOrderStatusChangedMessage(
-                       order.customerId, order.OrderLines, "completed");
+                   
 
                     // Create order.
                     order.Status = SharedModels.Order.OrderStatus.completed;
+
+                    messagePublisher.PublishOrderStatusChangedMessage(
+                      order.customerId, order.OrderLines, "completed");
+
                     //var newOrder = repository.Add(order);
                     return CreatedAtRoute("GetOrder", new { id = order.Id }, order);
                 }
