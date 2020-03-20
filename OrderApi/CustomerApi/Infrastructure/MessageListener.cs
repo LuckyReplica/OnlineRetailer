@@ -29,9 +29,11 @@ namespace CustomerApi.Infrastructure
 
                 bus.Subscribe<CreditStandingChangeMessage>("customerChangeCreditStanding", HandleCreditStanding, x => x.WithTopic("creditStanding.*"));
 
-                bus.Subscribe<OrderStatusChangedMessage>("customerApiShipped", HandleCustomerOrderShipped, x => x.WithTopic("shipped"));
-                
-                bus.Subscribe<OrderStatusChangedMessage>("customerApiPaid", HandleCustomerPaid, x => x.WithTopic("paid"));
+                bus.Subscribe<OrderStatusChangedMessage>("customerApiShipped", HandleCustomerCreditStandingBad, x => x.WithTopic("shipped"));
+
+                bus.Subscribe<OrderStatusChangedMessage>("customerApiCancelled", HandleCustomerCreditStandingGood, x => x.WithTopic("cancelled"));
+
+                bus.Subscribe<OrderStatusChangedMessage>("customerApiPaid", HandleCustomerCreditStandingGood, x => x.WithTopic("paid"));
 
                 // block the thread so that it will not exit and stop subscribing.
                 lock (this)
@@ -81,7 +83,7 @@ namespace CustomerApi.Infrastructure
             }
         }
 
-        private void HandleCustomerPaid(OrderStatusChangedMessage message)
+        private void HandleCustomerCreditStandingGood(OrderStatusChangedMessage message)
         {
             using (var scope = provider.CreateScope())
             {
@@ -96,7 +98,7 @@ namespace CustomerApi.Infrastructure
             }
         }
 
-        private void HandleCustomerOrderShipped(OrderStatusChangedMessage message)
+        private void HandleCustomerCreditStandingBad(OrderStatusChangedMessage message)
         {
             using (var scope = provider.CreateScope())
             {
