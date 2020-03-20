@@ -100,6 +100,24 @@ namespace OrderApi.Controllers
             }
         }
 
+        [HttpGet]
+        [Route("getStatusByOrderId/{id}")]
+        public IActionResult GetStatusByOrderId(int orderId)
+        {
+            try
+            {
+                var order = repository.Get(orderId);
+                var statusEnum = (Order.OrderStatus)order.Status;
+
+                return Ok("The order " + order.Id + " has the status: " + statusEnum.ToString());
+                
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
         [HttpPost]
         [Route("CreateOrder")]
         public IActionResult Post([FromBody]Order order)
