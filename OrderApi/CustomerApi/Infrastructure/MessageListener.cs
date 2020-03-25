@@ -4,6 +4,7 @@ using CustomerApi.Data;
 using SharedModels;
 using EasyNetQ;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.AspNetCore.Mvc;
 
 namespace CustomerApi.Infrastructure
 {

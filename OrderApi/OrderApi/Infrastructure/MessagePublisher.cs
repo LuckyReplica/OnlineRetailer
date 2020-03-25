@@ -1,4 +1,5 @@
 ﻿using EasyNetQ;
+using RestSharp;
 using SharedModels;
 using System;
 using System.Collections.Generic;
@@ -42,21 +43,37 @@ namespace OrderApi.Infrastructure
 
             bus.Publish(message, topic);
         }
+
         public bool IsInStock(Order order)
         {
+            RestClient client = new RestClient("http://productapi/api/products/CheckIfInStock");
             var orderLines = new OrderStatusChangedMessage { OrderLines = order.OrderLines };
-            var response = bus.Request<OrderStatusChangedMessage, IsInSockRequest>(orderLines);
 
-            return response.isInStock;
+            var request = new RestRequest(Method.PUT);
+            request.AddJsonBody(orderLines.OrderLines);
+
+            var response = client.Execute(request);
+            //var response = bus.Request<OrderStatusChangedMessage, IsInSockRequest>(orderLines);
+            var boo = bool.Parse(response.Content);
+
+            return boo;
         }
 
         public Customer RequestCustomer(int id)
         {
-            var cq = new CustomerRequest { Id = id };
-            //var response = bus.Request<CustomerRequest, ReturnedCustomer>(cq);
-            var response = bus.Request<CustomerRequest, Customer>(cq);
-            //return response.customer;
-            return response;
+            RestClient client = new RestClient("http://customerapi/customers/");
+
+            var request = new RestRequest(id.ToString(), Method.GET);
+
+            var url = client.BuildUri(request);
+
+            var response = client.Execute<Customer>(request);
+
+            return response.Data;
+
+            //var cq = new CustomerRequest { Id = id };
+            //var response = bus.Request<CustomerRequest, Customer>(cq);
+            //return response;
         }
     }
 }

@@ -36,7 +36,7 @@ namespace CustomerApi.Controllers
                     return NotFound("Customer was not found");
                 }
 
-                return Ok(new ObjectResult(item));
+                return new ObjectResult(item);
             }
             catch (Exception ex)
             {
