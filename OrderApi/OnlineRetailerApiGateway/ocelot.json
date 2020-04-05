@@ -1,0 +1,43 @@
+﻿{
+    "ReRoutes": [
+        {
+            // https://localhost:44317/productapi/products
+            "DownstreamPathTemplate": "/api/{catchAll}",
+            "DownstreamScheme": "https",
+            "DownstreamHostAndPorts": [
+                {
+                    "Host": "localhost",
+                    "Port": 44384
+                }
+            ],
+            "UpstreamPathTemplate": "/productapi/{catchAll}"
+        },
+        {
+            // https://localhost:44317/orderapi/orders
+            "DownstreamPathTemplate": "/api/{catchAll}",
+            "DownstreamScheme": "https",
+            "DownstreamHostAndPorts": [
+                {
+                    "Host": "localhost",
+                    "Port": 44382
+                }
+            ],
+            "UpstreamPathTemplate": "/orderapi/{catchAll}"
+        },
+        {
+            // https://localhost:44317/customerapi/customers
+            "DownstreamPathTemplate": "/{catchAll}",
+            "DownstreamScheme": "https",
+            "DownstreamHostAndPorts": [
+                {
+                    "Host": "localhost",
+                    "Port": 44318
+                }
+            ],
+            "UpstreamPathTemplate": "/customerapi/{catchAll}"
+        }
+    ],
+    "GlobalConfiguration": {
+        "BaseUrl": "https://localhost:44317"
+    }
+}
