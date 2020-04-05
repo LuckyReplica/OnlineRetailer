@@ -1,7 +1,7 @@
 ﻿{
     "ReRoutes": [
         {
-            // https://localhost:44317/productapi/products
+            // https://localhost:44384/productapi/products
             "DownstreamPathTemplate": "/api/{catchAll}",
             "DownstreamScheme": "https",
             "DownstreamHostAndPorts": [
@@ -25,7 +25,7 @@
             "UpstreamPathTemplate": "/orderapi/{catchAll}"
         },
         {
-            // https://localhost:44317/customerapi/customers
+            // https://localhost:44318/customerapi/customers
             "DownstreamPathTemplate": "/{catchAll}",
             "DownstreamScheme": "https",
             "DownstreamHostAndPorts": [
